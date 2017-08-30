@@ -20,7 +20,9 @@
     };
 
     SongPlayer.currentSong = null;
-    SongPlayer.volume = 50;
+    SongPlayer.volume = 80;
+    SongPlayer.VolumeBeforeMute = SongPlayer.volume;
+    SongPlayer.isMuted = false;
     /**
     * @desc Current playback time (in seconds) of currently playing song
     * @type {Number}
@@ -50,6 +52,9 @@
       currentBuzzObject.bind('timeupdate', function() {
           $rootScope.$apply(function() {
               SongPlayer.currentTime = currentBuzzObject.getTime();
+              if(currentBuzzObject.isEnded()){
+                SongPlayer.next();
+              }
           });
       });
 
@@ -75,8 +80,35 @@
     */
     SongPlayer.setVolume = function(volume) {
         if (currentBuzzObject) {
+            if(SongPlayer.isMuted){
+              SongPlayer.unMute();
+            }
             currentBuzzObject.setVolume(volume);
+            SongPlayer.volume = volume;
+            if(SongPlayer.volume == 0){
+              SongPlayer.isMuted = true;
+              SongPlayer.VolumeBeforeMute = 0;
+            }
+
         }
+    };
+
+    SongPlayer.mute = function(){
+        SongPlayer.VolumeBeforeMute = currentBuzzObject.getVolume();
+        currentBuzzObject.mute();
+        SongPlayer.volume = 0;
+        SongPlayer.isMuted = true;
+    };
+
+    SongPlayer.unMute = function(){
+        currentBuzzObject.unmute();
+        SongPlayer.volume = SongPlayer.VolumeBeforeMute;
+        if(SongPlayer.VolumeBeforeMute == 0){
+          currentBuzzObject.setVolume(80);
+          SongPlayer.volume = 80;
+        }
+        SongPlayer.isMuted = false;
+
     };
 
     /**
